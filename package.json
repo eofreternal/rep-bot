@@ -1,0 +1,8 @@
+{
+	"dependencies": {
+		"@slack/bolt": "^5.1.0"
+	},
+	"devDependencies": {
+		"tsx": "^4.23.15"
+	}
+}
