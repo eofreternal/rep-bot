@@ -3,16 +3,15 @@ loadEnvFile();
 
 import { App } from "@slack/bolt";
 
-// Initializes your app with your Slack app and bot token
 const app = new App({
     token: process.env.SLACK_BOT_TOKEN,
     socketMode: true,
     appToken: process.env.SLACK_APP_TOKEN,
 });
 
-(async () => {
-    // Start your app
+async function main() {
     await app.start();
 
     app.logger.info("⚡️ Bolt app is running!");
-})();
+}
+main()
