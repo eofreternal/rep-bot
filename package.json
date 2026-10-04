@@ -1,8 +1,11 @@
 {
 	"dependencies": {
-		"@slack/bolt": "^5.1.0"
+		"@libsql/client": "^0.18.0",
+		"@slack/bolt": "^5.1.0",
+		"drizzle-orm": "^0.45.3"
 	},
 	"devDependencies": {
+		"drizzle-kit": "^0.31.11",
 		"tsx": "^4.23.15"
 	}
 }
