@@ -37,8 +37,7 @@ app.message(async ({ message, say }) => {
                 return
             }
 
-            const userId = split[1].slice(1, -1)
-
+            const userId = split[1].slice(1, -1).replaceAll("@", "")
             await db.insert(schema.usersTable).values({
                 id: userId,
                 rep: 1
