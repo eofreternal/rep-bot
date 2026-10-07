@@ -4,7 +4,7 @@ loadEnvFile("../.env");
 import { App } from "@slack/bolt";
 import { db } from "./db/index"
 import * as schema from "./db/schema"
-import { sql } from "drizzle-orm"
+import { sql, eq, count, gt } from "drizzle-orm"
 
 const app = new App({
     token: process.env.SLACK_BOT_TOKEN,
@@ -19,6 +19,17 @@ app.command("/rep-bot-ping", async ({ command, ack, respond }) => {
     const latency = Date.now() - start;
     await respond({ text: `Pong!\nLatency: ${latency}ms` });
 });
+
+app.command("/rep-bot-profile", async ({ command, ack, respond }) => {
+    await ack();
+    const [data] = await db.select().from(schema.usersTable).where(eq(
+        schema.usersTable.id, command.user_id
+    ))
+
+    const [ranking] = await db.select({ count: count() }).from(schema.usersTable).where(gt(schema.usersTable.rep, data.rep))
+
+    await respond({ text: `Points: \`${data.rep ?? 0}\` - Ranking: \`#${ranking.count + 1}\``, response_type: "ephemeral" });
+})
 
 app.message(async ({ message, say }) => {
     if (message.type == "message") {
