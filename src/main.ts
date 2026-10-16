@@ -1,10 +1,16 @@
 import { loadEnvFile } from 'node:process';
 loadEnvFile("../.env");
 
-import { App } from "@slack/bolt";
+import { App, ButtonAction } from "@slack/bolt";
 import { db } from "./db/index"
 import * as schema from "./db/schema"
-import { sql, eq, count, gt } from "drizzle-orm"
+import { sql, eq, count, gt, desc } from "drizzle-orm"
+
+import type {
+    Button,
+    RichTextBlock,
+    RichTextSection,
+} from '@slack/types'
 
 const app = new App({
     token: process.env.SLACK_BOT_TOKEN,
@@ -29,6 +35,135 @@ app.command("/rep-bot-profile", async ({ command, ack, respond }) => {
     const [ranking] = await db.select({ count: count() }).from(schema.usersTable).where(gt(schema.usersTable.rep, data.rep))
 
     await respond({ text: `Points: \`${data.rep ?? 0}\` - Ranking: \`#${ranking.count + 1}\``, response_type: "ephemeral" });
+})
+
+// Learned how to do this from https://github.com/jeremy46231/slack-stats/blob/main/src/leaderboardMessage.ts
+async function buildTable(currentPage: number) {
+    const data = await db.select().from(schema.usersTable).offset(currentPage * 10).limit(10).orderBy(desc(schema.usersTable.rep))
+    const dataRows: RichTextBlock[][] = data.map((item, index) => [
+        {
+            type: 'rich_text',
+            elements: [{ type: 'rich_text_section', elements: [{ type: 'text', text: index.toString() }] } as RichTextSection],
+        },
+        {
+            type: 'rich_text',
+            elements: [{ type: 'rich_text_section', elements: [{ type: 'user', user_id: item.id }] } as RichTextSection],
+        },
+        {
+            type: 'rich_text',
+            elements: [{ type: 'rich_text_section', elements: [{ type: 'text', text: item.rep.toString() }] } as RichTextSection],
+        }
+    ])
+
+    const headerRow: RichTextBlock[] = [
+        {
+            type: 'rich_text',
+            elements: [{ type: 'rich_text_section', elements: [{ type: 'text', text: "#", style: { bold: true } }] } as RichTextSection],
+        },
+        {
+            type: 'rich_text',
+            elements: [{ type: 'rich_text_section', elements: [{ type: 'text', text: "Person", style: { bold: true } }] } as RichTextSection],
+        },
+        {
+            type: 'rich_text',
+            elements: [{ type: 'rich_text_section', elements: [{ type: 'text', text: "Rep", style: { bold: true } }] } as RichTextSection],
+        }
+    ]
+
+    if (dataRows.length == 0) {
+        dataRows.push([
+            {
+                type: 'rich_text',
+                elements: [{ type: 'rich_text_section', elements: [{ type: 'text', text: "0" }] } as RichTextSection],
+            },
+            {
+                type: 'rich_text',
+                elements: [{ type: 'rich_text_section', elements: [{ type: 'text', text: "No people on this page" }] } as RichTextSection],
+            },
+            {
+                type: 'rich_text',
+                elements: [{ type: 'rich_text_section', elements: [{ type: 'text', text: "0" }] } as RichTextSection],
+            }
+        ])
+    }
+
+    return {
+        type: "table",
+        rows: [
+            headerRow,
+            ...dataRows
+        ]
+    }
+}
+
+app.command("/rep-bot-lb", async ({ command, ack, respond, body, client }) => {
+    await ack();
+
+    const table = await buildTable(0)
+    await client.chat.postMessage({
+        channel: body.channel_id,
+        text: "Rep Bot Leaderboard",
+        blocks: [table,
+            {
+                type: "context",
+                elements: [{ type: "mrkdwn", text: `*Page 1*` }]
+            },
+            {
+                type: "actions", elements: [{
+                    type: "button",
+                    text: { type: "plain_text", text: "Next" },
+                    action_id: "paginate_next",
+                    value: "1"
+                }]
+            }
+        ]
+    });
+})
+
+app.action(/paginate_(next|prev)/, async ({ action, ack, respond, body, client }) => {
+    await ack()
+
+    const buttonAction = action as ButtonAction
+    if (buttonAction.value == undefined) {
+        console.log("error man wtf")
+        await respond({
+            replace_original: true,
+            blocks: [{
+                type: 'rich_text',
+                elements: [{ type: 'rich_text_section', elements: [{ type: 'text', text: "Something went wrong. Why is buttonAction.value undefined?" }] } as RichTextSection],
+            }]
+        })
+        return
+    }
+    const page = parseInt(buttonAction.value)
+
+    const buttons: Button[] = [{
+        type: "button",
+        text: { type: "plain_text", text: "Previous" },
+        action_id: "paginate_prev",
+        value: (page - 1).toString()
+    }]
+    if (page > 0) {
+        buttons.push({
+            type: "button",
+            text: { type: "plain_text", text: "Next" },
+            action_id: "paginate_next",
+            value: (page + 1).toString()
+        })
+    }
+
+    const table = await buildTable(page)
+    await client.chat.update({
+        channel: body.channel!.id,
+        ts: body.message.ts,
+        blocks: [table,
+            {
+                type: "context",
+                elements: [{ type: "mrkdwn", text: `*Page ${page + 1}*` }]
+            },
+            { type: "actions", elements: buttons }
+        ]
+    });
 })
 
 app.message(async ({ message, say }) => {
