@@ -196,7 +196,7 @@ app.message(async ({ message, say }) => {
 
             say({
                 thread_ts: message.ts ?? message.thread_ts,
-                text: `+1 rep to <${userId}>`
+                text: `+1 rep to <@${userId}>`
             })
         }
     }
