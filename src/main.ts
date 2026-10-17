@@ -198,6 +198,11 @@ app.message(async ({ message, say }) => {
                 thread_ts: message.ts ?? message.thread_ts,
                 text: `+1 rep to <@${userId}>`
             })
+
+            await db.insert(schema.logsTable).values({
+                channel: message.channel,
+                creationDate: Date.now()
+            })
         }
     }
 })
