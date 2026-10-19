@@ -166,24 +166,34 @@ app.action(/paginate_(next|prev)/, async ({ action, ack, respond, body, client }
     });
 })
 
+function fetchUserPingIdThing(text: string[]) {
+    for (let i = 0; i < text.length; i++) {
+        if ((text[i].startsWith("<") && text[i].endsWith(">")) == true) {
+            return text[i].slice(1, -1).replaceAll("@", "").toUpperCase()
+        }
+    }
+    return undefined
+}
+
 app.message(async ({ message, say }) => {
+    const thanks = ["thanks", "thank", "ty", "thx"]
+
     if (message.type == "message") {
         if (message.subtype == undefined) {
             if (message.text == undefined) { return }
-            const split = message.text?.toLowerCase().split(" ")
-            if (split.length !== 2) {
+            const splitArray = message.text?.toLowerCase().split(" ")
+            const splitSet = new Set(splitArray)
+
+            if (thanks.some(item => splitSet.has(item)) == false) {
                 return
             }
 
-            if (["thanks", "thank", "ty", "thx"].includes(split[0]) == false) {
+            const userId = fetchUserPingIdThing(splitArray)
+
+            if (userId == undefined) {
                 return
             }
 
-            if ((split[1].startsWith("<") && split[1].endsWith(">")) == false) {
-                return
-            }
-
-            const userId = split[1].slice(1, -1).replaceAll("@", "").toUpperCase()
             await db.insert(schema.usersTable).values({
                 id: userId,
                 rep: 1
