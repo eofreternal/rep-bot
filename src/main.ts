@@ -175,7 +175,7 @@ app.message(async ({ message, say }) => {
                 return
             }
 
-            if (["thanks", "thank", "thx"].includes(split[0]) == false) {
+            if (["thanks", "thank", "ty", "thx"].includes(split[0]) == false) {
                 return
             }
 
