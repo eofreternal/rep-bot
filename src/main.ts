@@ -170,7 +170,7 @@ app.message(async ({ message, say }) => {
     if (message.type == "message") {
         if (message.subtype == undefined) {
             if (message.text == undefined) { return }
-            const split = message.text?.split(" ")
+            const split = message.text?.toLowerCase().split(" ")
             if (split.length !== 2) {
                 return
             }
