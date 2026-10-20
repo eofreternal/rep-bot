@@ -241,7 +241,7 @@ async function loop() {
         const table = await buildTable(0)
         allChannels.forEach(async channel => {
             const currentTime = Date.now()
-            const aDayPassed = ((currentTime - channel.firstMessageTimestamp) / 1000) >= aDayInSeconds
+            const aDayPassed = ((currentTime - channel.lastBotMessage) / 1000) >= aDayInSeconds
             const moreThan20Messages = channel.number >= 20
             if (aDayPassed && moreThan20Messages) {
                 app.client.chat.postMessage({
@@ -267,7 +267,10 @@ async function loop() {
                     ]
                 })
 
-                await db.delete(schema.messagesInChannelTable).where(eq(schema.messagesInChannelTable.id, channel.id))
+                await db.update(schema.messagesInChannelTable).set({
+                    lastBotMessage: Date.now(),
+                    number: 0
+                }).where(eq(schema.messagesInChannelTable.id, channel.id))
             }
         })
 
