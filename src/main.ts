@@ -180,8 +180,7 @@ function fetchUserPingIdThing(text: string[]) {
 async function incrementMessagesInChannel(channelId: string) {
     await db.insert(schema.messagesInChannelTable).values({
         id: channelId,
-        number: 1,
-        firstMessageTimestamp: Date.now()
+        number: 1
     }).onConflictDoUpdate({
         target: schema.messagesInChannelTable.id,
         set: {
@@ -235,16 +234,23 @@ app.message(async ({ message, say }) => {
 })
 
 async function loop() {
-    const aDayInSeconds = 60 * 60 * 24
+    const aDayInSeconds = 60 * 60 * 25
     while (true) {
         const allChannels = await db.select().from(schema.messagesInChannelTable)
         const table = await buildTable(0)
         allChannels.forEach(async channel => {
             const currentTime = Date.now()
-            const aDayPassed = ((currentTime - channel.lastBotMessage) / 1000) >= aDayInSeconds
+            const aDayPassed = ((currentTime - (channel.lastBotMessage ?? 0)) / 1000) >= aDayInSeconds
             const moreThan20Messages = channel.number >= 20
             if (aDayPassed && moreThan20Messages) {
-                app.client.chat.postMessage({
+                if (channel.botMessageId) {
+                    await app.client.chat.delete({
+                        channel: channel.id,
+                        ts: channel.botMessageId
+                    })
+                }
+
+                const message = await app.client.chat.postMessage({
                     channel: channel.id,
                     text: "Remember to thank the person that helped you!",
                     blocks: [
@@ -269,7 +275,8 @@ async function loop() {
 
                 await db.update(schema.messagesInChannelTable).set({
                     lastBotMessage: Date.now(),
-                    number: 0
+                    number: 0,
+                    botMessageId: message.ts
                 }).where(eq(schema.messagesInChannelTable.id, channel.id))
             }
         })

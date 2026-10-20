@@ -16,6 +16,6 @@ export const messagesInChannelTable = sqliteTable("messages_in_channel", {
     id: text().unique().notNull().primaryKey(),
     number: int().notNull(),
 
-    firstMessageTimestamp: int().notNull(),
+    lastBotMessage: int(),
     botMessageId: text(),
 })
