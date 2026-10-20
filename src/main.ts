@@ -23,7 +23,7 @@ const app = new App({
 app.command("/rep-bot-register", async ({ command, ack, respond }) => {
     await ack()
 
-    const [d] = await db.select().from(schema.messagesInChannelTable).where(eq(schema.messagesInChannelTable, command.channel_id))
+    const [d] = await db.select().from(schema.messagesInChannelTable).where(eq(schema.messagesInChannelTable.id, command.channel_id))
     if (d !== undefined) {
         await respond({
             text: "Channel is already registered",
