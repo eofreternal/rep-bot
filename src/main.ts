@@ -20,6 +20,49 @@ const app = new App({
     appToken: process.env.SLACK_APP_TOKEN,
 });
 
+app.command("/rep-bot-register", async ({ command, ack, respond }) => {
+    await ack()
+
+    const [d] = await db.select().from(schema.messagesInChannelTable).where(eq(schema.messagesInChannelTable, command.channel_id))
+    if (d !== undefined) {
+        await respond({
+            text: "Channel is already registered",
+            response_type: "ephemeral"
+        })
+        return
+    }
+
+    await db.insert(schema.messagesInChannelTable).values({ id: command.channel_id, number: 0 })
+    const table = await buildTable(0)
+    await app.client.chat.postMessage({
+        channel: command.channel_id,
+        text: "Remember to thank the person that helped you!",
+        blocks: [
+            {
+                type: "section",
+                text: {
+                    type: "mrkdwn",
+                    text: "Remember to thank the person that helped you! Say \`thanks @[their username]\`\n*Leaderboard*"
+                },
+            },
+            table,
+            {
+                type: "actions", elements: [{
+                    type: "button",
+                    text: { type: "plain_text", text: "Next" },
+                    action_id: "paginate_next",
+                    value: "1"
+                }]
+            }
+        ]
+    })
+
+    await respond({
+        text: "Channel registered",
+        response_type: "ephemeral",
+    });
+})
+
 // Taken from https://stardance.hackclub.com/missions/slack-bot/guide#step-3
 app.command("/rep-bot-ping", async ({ command, ack, respond }) => {
     const start = Date.now();
