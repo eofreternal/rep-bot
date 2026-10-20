@@ -11,3 +11,11 @@ export const logsTable = sqliteTable("logs", {
 
     creationDate: int().notNull()
 })
+
+export const messagesInChannelTable = sqliteTable("messages_in_channel", {
+    id: text().unique().notNull().primaryKey(),
+    number: int().notNull(),
+
+    firstMessageTimestamp: int().notNull(),
+    botMessageId: text(),
+})

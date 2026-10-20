@@ -12,6 +12,8 @@ import type {
     RichTextSection,
 } from '@slack/types'
 
+import { sleep } from "./utils"
+
 const app = new App({
     token: process.env.SLACK_BOT_TOKEN,
     socketMode: true,
@@ -175,12 +177,27 @@ function fetchUserPingIdThing(text: string[]) {
     return undefined
 }
 
+async function incrementMessagesInChannel(channelId: string) {
+    await db.insert(schema.messagesInChannelTable).values({
+        id: channelId,
+        number: 1,
+        firstMessageTimestamp: Date.now()
+    }).onConflictDoUpdate({
+        target: schema.messagesInChannelTable.id,
+        set: {
+            number: sql`${schema.messagesInChannelTable.number} + 1`,
+        }
+    })
+}
+
 app.message(async ({ message, say }) => {
     const thanks = ["thanks", "thank", "ty", "thx"]
 
     if (message.type == "message") {
         if (message.subtype == undefined) {
             if (message.text == undefined) { return }
+            incrementMessagesInChannel(message.channel)
+
             const splitArray = message.text?.toLowerCase().split(" ")
             const splitSet = new Set(splitArray)
 
@@ -217,8 +234,50 @@ app.message(async ({ message, say }) => {
     }
 })
 
+async function loop() {
+    const aDayInSeconds = 60 * 60 * 24
+    while (true) {
+        const allChannels = await db.select().from(schema.messagesInChannelTable)
+        const table = await buildTable(0)
+        allChannels.forEach(async channel => {
+            const currentTime = Date.now()
+            const aDayPassed = ((currentTime - channel.firstMessageTimestamp) / 1000) >= aDayInSeconds
+            const moreThan20Messages = channel.number >= 20
+            if (aDayPassed && moreThan20Messages) {
+                app.client.chat.postMessage({
+                    channel: channel.id,
+                    text: "Remember to thank the person that helped you!",
+                    blocks: [
+                        {
+                            type: "section",
+                            text: {
+                                type: "mrkdwn",
+                                text: "Remember to thank the person that helped you! Say \`thanks @[their username]\`\n*Leaderboard*"
+                            },
+                        },
+                        table,
+                        {
+                            type: "actions", elements: [{
+                                type: "button",
+                                text: { type: "plain_text", text: "Next" },
+                                action_id: "paginate_next",
+                                value: "1"
+                            }]
+                        }
+                    ]
+                })
+
+                await db.delete(schema.messagesInChannelTable).where(eq(schema.messagesInChannelTable.id, channel.id))
+            }
+        })
+
+        await sleep(1000)
+    }
+}
+
 async function main() {
     await app.start();
+    loop()
 
     app.logger.info("⚡️ Bolt app is running!");
 }
