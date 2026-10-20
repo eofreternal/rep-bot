@@ -277,7 +277,7 @@ app.message(async ({ message, say }) => {
 })
 
 async function loop() {
-    const aDayInSeconds = 60 * 60 * 25
+    const aDayInSeconds = 60 * 60 * 24
     while (true) {
         const allChannels = await db.select().from(schema.messagesInChannelTable)
         const table = await buildTable(0)
