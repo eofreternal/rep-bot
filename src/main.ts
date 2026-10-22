@@ -181,19 +181,27 @@ app.action(/paginate_(next|prev)/, async ({ action, ack, respond, body, client }
         return
     }
     const page = parseInt(buttonAction.value)
+    if (page < 0) {
+        await respond({
+            response_type: "ephemeral",
+            text: "You're already on the first page",
+            replace_original: false
+        })
+        return
+    }
 
     const buttons: Button[] = [{
         type: "button",
-        text: { type: "plain_text", text: "Previous" },
-        action_id: "paginate_prev",
-        value: (page - 1).toString()
+        text: { type: "plain_text", text: "Next" },
+        action_id: "paginate_next",
+        value: (page + 1).toString()
     }]
     if (page > 0) {
         buttons.push({
             type: "button",
-            text: { type: "plain_text", text: "Next" },
-            action_id: "paginate_next",
-            value: (page + 1).toString()
+            text: { type: "plain_text", text: "Previous" },
+            action_id: "paginate_prev",
+            value: (page - 1).toString()
         })
     }
 
