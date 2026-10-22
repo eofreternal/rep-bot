@@ -280,6 +280,10 @@ app.message(async ({ message, say }) => {
                 return
             }
 
+            if (message.user == userId) {
+                return
+            }
+
             await db.insert(schema.usersTable).values({
                 id: userId,
                 points: 1
