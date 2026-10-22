@@ -77,14 +77,14 @@ app.command("/rep-bot-profile", async ({ command, ack, respond }) => {
         schema.usersTable.id, command.user_id
     ))
 
-    const [ranking] = await db.select({ count: count() }).from(schema.usersTable).where(gt(schema.usersTable.rep, data.rep))
+    const [ranking] = await db.select({ count: count() }).from(schema.usersTable).where(gt(schema.usersTable.points, data.points))
 
-    await respond({ text: `Points: \`${data.rep ?? 0}\` - Ranking: \`#${ranking.count + 1}\``, response_type: "ephemeral" });
+    await respond({ text: `Points: \`${data.points ?? 0}\` - Ranking: \`#${ranking.count + 1}\``, response_type: "ephemeral" });
 })
 
 // Learned how to do this from https://github.com/jeremy46231/slack-stats/blob/main/src/leaderboardMessage.ts
 async function buildTable(currentPage: number) {
-    const data = await db.select().from(schema.usersTable).offset(currentPage * 10).limit(10).orderBy(desc(schema.usersTable.rep))
+    const data = await db.select().from(schema.usersTable).offset(currentPage * 10).limit(10).orderBy(desc(schema.usersTable.points))
     const dataRows: RichTextBlock[][] = data.map((item, index) => [
         {
             type: 'rich_text',
@@ -96,7 +96,7 @@ async function buildTable(currentPage: number) {
         },
         {
             type: 'rich_text',
-            elements: [{ type: 'rich_text_section', elements: [{ type: 'text', text: item.rep.toString() }] } as RichTextSection],
+            elements: [{ type: 'rich_text_section', elements: [{ type: 'text', text: item.points.toString() }] } as RichTextSection],
         }
     ])
 
@@ -111,7 +111,7 @@ async function buildTable(currentPage: number) {
         },
         {
             type: 'rich_text',
-            elements: [{ type: 'rich_text_section', elements: [{ type: 'text', text: "Rep", style: { bold: true } }] } as RichTextSection],
+            elements: [{ type: 'rich_text_section', elements: [{ type: 'text', text: "Points", style: { bold: true } }] } as RichTextSection],
         }
     ]
 
@@ -255,17 +255,17 @@ app.message(async ({ message, say }) => {
 
             await db.insert(schema.usersTable).values({
                 id: userId,
-                rep: 1
+                points: 1
             }).onConflictDoUpdate({
                 target: schema.usersTable.id,
                 set: {
-                    rep: sql`${schema.usersTable.rep} + 1`,
+                    points: sql`${schema.usersTable.points} + 1`,
                 }
             })
 
             say({
                 thread_ts: message.ts ?? message.thread_ts,
-                text: `+1 rep to <@${userId}>`
+                text: `+1 point to <@${userId}>`
             })
 
             await db.insert(schema.logsTable).values({
