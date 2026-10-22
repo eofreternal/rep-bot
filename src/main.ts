@@ -32,9 +32,8 @@ app.command("/rep-bot-register", async ({ command, ack, respond }) => {
         return
     }
 
-    await db.insert(schema.messagesInChannelTable).values({ id: command.channel_id, number: 0 })
     const table = await buildTable(0)
-    await app.client.chat.postMessage({
+    const message = await app.client.chat.postMessage({
         channel: command.channel_id,
         text: "Remember to thank the person that helped you!",
         blocks: [
@@ -42,7 +41,21 @@ app.command("/rep-bot-register", async ({ command, ack, respond }) => {
                 type: "section",
                 text: {
                     type: "mrkdwn",
-                    text: "Remember to thank the person that helped you! Say \`thanks @[their username]\`\n*Leaderboard*"
+                    text: "Remember to thank the person that helped you! Say \`thanks @[their username]\`"
+                },
+            }]
+    })
+
+    const leaderboard = await app.client.chat.postMessage({
+        channel: command.channel_id,
+        text: "Leaderboard",
+
+        blocks: [
+            {
+                type: "section",
+                text: {
+                    type: "mrkdwn",
+                    text: "*Leaderboard*"
                 },
             },
             table,
@@ -55,6 +68,12 @@ app.command("/rep-bot-register", async ({ command, ack, respond }) => {
                 }]
             }
         ]
+    })
+    await db.insert(schema.messagesInChannelTable).values({
+        id: command.channel_id,
+        number: 0,
+        lastBotReminderLeaderboardMessage: leaderboard.ts,
+        lastBotReminderMessage: message.ts
     })
 
     await respond({
@@ -294,10 +313,17 @@ async function loop() {
             const aDayPassed = ((currentTime - (channel.lastBotMessage ?? 0)) / 1000) >= aDayInSeconds
             const moreThan20Messages = channel.number >= 20
             if (aDayPassed && moreThan20Messages) {
-                if (channel.botMessageId) {
+                if (channel.lastBotReminderLeaderboardMessage) {
                     await app.client.chat.delete({
                         channel: channel.id,
-                        ts: channel.botMessageId
+                        ts: channel.lastBotReminderLeaderboardMessage
+                    })
+                }
+
+                if (channel.lastBotReminderMessage) {
+                    await app.client.chat.delete({
+                        channel: channel.id,
+                        ts: channel.lastBotReminderMessage
                     })
                 }
 
@@ -309,7 +335,22 @@ async function loop() {
                             type: "section",
                             text: {
                                 type: "mrkdwn",
-                                text: "Remember to thank the person that helped you! Say \`thanks @[their username]\`\n*Leaderboard*"
+                                text: "Remember to thank the person that helped you! Say \`thanks @[their username]\`"
+                            },
+                        }
+                    ]
+                })
+
+                const leaderboard = await app.client.chat.postMessage({
+                    channel: channel.id,
+                    text: "Leaderboard",
+
+                    blocks: [
+                        {
+                            type: "section",
+                            text: {
+                                type: "mrkdwn",
+                                text: "*Leaderboard*"
                             },
                         },
                         table,
@@ -327,7 +368,9 @@ async function loop() {
                 await db.update(schema.messagesInChannelTable).set({
                     lastBotMessage: Date.now(),
                     number: 0,
-                    botMessageId: message.ts
+
+                    lastBotReminderLeaderboardMessage: leaderboard.ts,
+                    lastBotReminderMessage: message.ts
                 }).where(eq(schema.messagesInChannelTable.id, channel.id))
             }
         })
