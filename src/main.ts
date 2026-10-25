@@ -20,7 +20,7 @@ const app = new App({
     appToken: process.env.SLACK_APP_TOKEN,
 });
 
-app.command("/rep-bot-register", async ({ command, ack, respond }) => {
+app.command(`/${process.env.BOT_NAME}-register`, async ({ command, ack, respond }) => {
     await ack()
 
     const [d] = await db.select().from(schema.messagesInChannelTable).where(eq(schema.messagesInChannelTable.id, command.channel_id))
@@ -83,14 +83,14 @@ app.command("/rep-bot-register", async ({ command, ack, respond }) => {
 })
 
 // Taken from https://stardance.hackclub.com/missions/slack-bot/guide#step-3
-app.command("/rep-bot-ping", async ({ command, ack, respond }) => {
+app.command(`/${process.env.BOT_NAME}-ping`, async ({ command, ack, respond }) => {
     const start = Date.now();
     await ack();
     const latency = Date.now() - start;
     await respond({ text: `Pong!\nLatency: ${latency}ms` });
 });
 
-app.command("/rep-bot-profile", async ({ command, ack, respond }) => {
+app.command(`/${process.env.BOT_NAME}-profile`, async ({ command, ack, respond }) => {
     await ack();
     const [data] = await db.select().from(schema.usersTable).where(eq(
         schema.usersTable.id, command.user_id
@@ -160,7 +160,7 @@ async function buildTable(currentPage: number) {
     }
 }
 
-app.command("/rep-bot-lb", async ({ command, ack, respond, body, client }) => {
+app.command(`/${process.env.BOT_NAME}-lb`, async ({ command, ack, respond, body, client }) => {
     await ack();
 
     const table = await buildTable(0)
