@@ -35,13 +35,13 @@ app.command(`/${process.env.BOT_NAME}-register`, async ({ command, ack, respond 
     const table = await buildTable(0)
     const message = await app.client.chat.postMessage({
         channel: command.channel_id,
-        text: "Remember to thank the person that helped you!",
+        text: "Remember to thank the person that helped you to give them a point!",
         blocks: [
             {
                 type: "section",
                 text: {
                     type: "mrkdwn",
-                    text: "Remember to thank the person that helped you! Say \`thanks @[their username]\`"
+                    text: "Remember to thank the person that helped you to give them a point! Say \`thanks @[their username]\`"
                 },
             }]
     })
@@ -333,13 +333,13 @@ async function loop() {
 
                 const message = await app.client.chat.postMessage({
                     channel: channel.id,
-                    text: "Remember to thank the person that helped you!",
+                    text: "Remember to thank the person that helped you to give them a point!",
                     blocks: [
                         {
                             type: "section",
                             text: {
                                 type: "mrkdwn",
-                                text: "Remember to thank the person that helped you! Say \`thanks @[their username]\`"
+                                text: "Remember to thank the person that helped you to give them a point! Say \`thanks @[their username]\`"
                             },
                         }
                     ]
