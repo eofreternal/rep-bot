@@ -259,7 +259,7 @@ async function incrementMessagesInChannel(channelId: string) {
     })
 }
 
-app.message(async ({ message, say }) => {
+app.message(async ({ message, client, say }) => {
     const thanks = ["thanks", "thank", "ty", "thx"]
 
     if (message.type == "message") {
@@ -281,6 +281,12 @@ app.message(async ({ message, say }) => {
             }
 
             if (message.user == userId) {
+                await client.chat.postEphemeral({
+                    channel: message.channel,
+                    user: userId,
+                    text: "You can't thank yourself, silly :P",
+                    thread_ts: message.thread_ts
+                })
                 return
             }
 
