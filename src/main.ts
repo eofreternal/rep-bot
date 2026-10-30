@@ -324,17 +324,21 @@ async function loop() {
             const moreThan20Messages = channel.number >= 20
             if (aDayPassed && moreThan20Messages) {
                 if (channel.lastBotReminderLeaderboardMessage) {
-                    await app.client.chat.delete({
-                        channel: channel.id,
-                        ts: channel.lastBotReminderLeaderboardMessage
-                    })
+                    try {
+                        await app.client.chat.delete({
+                            channel: channel.id,
+                            ts: channel.lastBotReminderLeaderboardMessage
+                        })
+                    } catch { }
                 }
 
                 if (channel.lastBotReminderMessage) {
-                    await app.client.chat.delete({
-                        channel: channel.id,
-                        ts: channel.lastBotReminderMessage
-                    })
+                    try {
+                        await app.client.chat.delete({
+                            channel: channel.id,
+                            ts: channel.lastBotReminderMessage
+                        })
+                    } catch { }
                 }
 
                 const message = await app.client.chat.postMessage({
