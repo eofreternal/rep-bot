@@ -6,10 +6,14 @@ The #help channel on the Hack Club Slack is pretty active, but not so much other
 
 # Commands
 
-`/${BOT_NAME}-register` - Initally registers the channel in the database and sends the first reminder message
-`/${BOT_NAME}-profile` - Shows your points and ranking on the leaderboard
-`/${BOT_NAME}-lb` - Shows the leaderboard
-`/${BOT_NAME}-ping`- Ping the bot to see if it's running
+`/rep-bot-register` - Initally registers the channel in the database and sends the first reminder message
+`/rep-bot-profile` - Shows your points and ranking on the leaderboard
+`/rep-bot-lb` - Shows the leaderboard
+`/rep-bot-ping`- Ping the bot to see if it's running
+
+If you change the name of the bot in the `.env` file, you must change the name of the command in the the Slack dashboard where you register your slash commands so that instead of it being prefixed with `rep-bot`, it's prefixed with the name of your bot. The code will not work if you do not do this
+
+Example: if you change the name of the bot to `tracker`, then you must change the name of the commands to `/tracker-profile` and `/tracker-register` on the Slack bot dashboard thingie.
 
 # How to use
 
@@ -46,6 +50,10 @@ Event Subscriptions - Subscribe to bot events
 
 - message.channels
 - message.groups
+
+Slash commands
+
+- Well, you know this already.
 
 1. Rename the .env.example file to .env
 2. Fill out the .env file
