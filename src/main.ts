@@ -92,13 +92,18 @@ app.command(`/${process.env.BOT_NAME}-ping`, async ({ command, ack, respond }) =
 
 app.command(`/${process.env.BOT_NAME}-profile`, async ({ command, ack, respond }) => {
     await ack();
-    const [data] = await db.select().from(schema.usersTable).where(eq(
-        schema.usersTable.id, command.user_id
-    ))
+    try {
+        const [data] = await db.select().from(schema.usersTable).where(eq(
+            schema.usersTable.id, command.user_id
+        ))
 
-    const [ranking] = await db.select({ count: count() }).from(schema.usersTable).where(gt(schema.usersTable.points, data.points))
+        const [ranking] = await db.select({ count: count() }).from(schema.usersTable).where(gt(schema.usersTable.points, data.points))
 
-    await respond({ text: `Points: \`${data.points ?? 0}\` - Ranking: \`#${ranking.count + 1}\``, response_type: "ephemeral" });
+        await respond({ text: `Points: \`${data.points ?? 0}\` - Ranking: \`#${ranking.count + 1}\``, response_type: "ephemeral" });
+    } catch (e) {
+        //user probably wasn't found
+        await respond({ text: `Points: \`0\` - Ranking: \`unknown\``, response_type: "ephemeral" });
+    }
 })
 
 // Learned how to do this from https://github.com/jeremy46231/slack-stats/blob/main/src/leaderboardMessage.ts
