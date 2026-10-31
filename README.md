@@ -18,7 +18,7 @@ If you change the name of the bot in the `.env` file, you must change the name o
 
 Example:
 
-if you change the name of the bot to `tracker`, then you must change the name of the commands to `/tracker-profile` and `/tracker-register` on the Slack bot dashboard thingie.
+if you change the name of the bot to `tracker`, then you must change the name of the commands to `/tracker-profile` and `/tracker-register`, etc, on the Slack bot dashboard thingie.
 
 # How to use
 
