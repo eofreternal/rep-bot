@@ -7,13 +7,18 @@ The #help channel on the Hack Club Slack is pretty active, but not so much other
 # Commands
 
 `/rep-bot-register` - Initally registers the channel in the database and sends the first reminder message
+
 `/rep-bot-profile` - Shows your points and ranking on the leaderboard
+
 `/rep-bot-lb` - Shows the leaderboard
+
 `/rep-bot-ping`- Ping the bot to see if it's running
 
 If you change the name of the bot in the `.env` file, you must change the name of the command in the the Slack dashboard where you register your slash commands so that instead of it being prefixed with `rep-bot`, it's prefixed with the name of your bot. The code will not work if you do not do this
 
-Example: if you change the name of the bot to `tracker`, then you must change the name of the commands to `/tracker-profile` and `/tracker-register` on the Slack bot dashboard thingie.
+Example:
+
+if you change the name of the bot to `tracker`, then you must change the name of the commands to `/tracker-profile` and `/tracker-register` on the Slack bot dashboard thingie.
 
 # How to use
 
@@ -57,6 +62,6 @@ Slash commands
 
 1. Rename the .env.example file to .env
 2. Fill out the .env file
-3. install the dependencies with `npm install` (or `pnpm install` or `bun install` or whatever install command it is for your package manager)
+3. Install the dependencies with `npm install` (or `pnpm install` or `bun install` or whatever install command it is for your package manager)
 4. Set up the database by running `npx drizzle-kit generate` and `npx drizzle-kit migrate` (or, if you're using `pnpm` like me, run `pnpm exec drizzle-kit generate` and `pnpm exec drizzle-kit migrate`)
 5. `cd` into the `src/` directory and run the `main.ts` file and enjoy!
