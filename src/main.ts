@@ -285,6 +285,10 @@ app.message(async ({ message, client, say }) => {
                 return
             }
 
+            if (userId.startsWith("U") == false) {
+                return
+            }
+
             if (message.user == userId) {
                 await client.chat.postEphemeral({
                     channel: message.channel,
