@@ -1,1 +1,0 @@
-ALTER TABLE `messages_in_channel` DROP COLUMN `lastBotReminderLeaderboardMessage`;
