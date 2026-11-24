@@ -41,38 +41,14 @@ app.command(`/${process.env.BOT_NAME}-register`, async ({ command, ack, respond 
                 type: "section",
                 text: {
                     type: "mrkdwn",
-                    text: "Remember to thank the person that helped you to give them a point! Say \`thanks @[their username]\`"
+                    text: `Remember to thank the person that helped you to give them a point! Say \`thanks @[their username]\`. To see the leaderboard, run \`${process.env.BOT_NAME}-lb\` in #bot-spam.`
                 },
             }]
     })
 
-    const leaderboard = await app.client.chat.postMessage({
-        channel: command.channel_id,
-        text: "Leaderboard",
-
-        blocks: [
-            {
-                type: "section",
-                text: {
-                    type: "mrkdwn",
-                    text: "*Leaderboard*"
-                },
-            },
-            table,
-            {
-                type: "actions", elements: [{
-                    type: "button",
-                    text: { type: "plain_text", text: "Next" },
-                    action_id: "paginate_next",
-                    value: "1"
-                }]
-            }
-        ]
-    })
     await db.insert(schema.messagesInChannelTable).values({
         id: command.channel_id,
         number: 0,
-        lastBotReminderLeaderboardMessage: leaderboard.ts,
         lastBotReminderMessage: message.ts
     })
 
@@ -332,15 +308,6 @@ async function loop() {
             const aDayPassed = ((currentTime - (channel.lastBotMessage ?? 0)) / 1000) >= aDayInSeconds
             const moreThan20Messages = channel.number >= 20
             if (aDayPassed && moreThan20Messages) {
-                if (channel.lastBotReminderLeaderboardMessage) {
-                    try {
-                        await app.client.chat.delete({
-                            channel: channel.id,
-                            ts: channel.lastBotReminderLeaderboardMessage
-                        })
-                    } catch { }
-                }
-
                 if (channel.lastBotReminderMessage) {
                     try {
                         await app.client.chat.delete({
@@ -358,32 +325,8 @@ async function loop() {
                             type: "section",
                             text: {
                                 type: "mrkdwn",
-                                text: "Remember to thank the person that helped you to give them a point! Say \`thanks @[their username]\`"
+                                text: `Remember to thank the person that helped you to give them a point! Say \`thanks @[their username]\`. To see the leaderboard, run \`${process.env.BOT_NAME}-lb\` in #bot-spam.`
                             },
-                        }
-                    ]
-                })
-
-                const leaderboard = await app.client.chat.postMessage({
-                    channel: channel.id,
-                    text: "Leaderboard",
-
-                    blocks: [
-                        {
-                            type: "section",
-                            text: {
-                                type: "mrkdwn",
-                                text: "*Leaderboard*"
-                            },
-                        },
-                        table,
-                        {
-                            type: "actions", elements: [{
-                                type: "button",
-                                text: { type: "plain_text", text: "Next" },
-                                action_id: "paginate_next",
-                                value: "1"
-                            }]
                         }
                     ]
                 })
@@ -392,7 +335,6 @@ async function loop() {
                     lastBotMessage: Date.now(),
                     number: 0,
 
-                    lastBotReminderLeaderboardMessage: leaderboard.ts,
                     lastBotReminderMessage: message.ts
                 }).where(eq(schema.messagesInChannelTable.id, channel.id))
             }

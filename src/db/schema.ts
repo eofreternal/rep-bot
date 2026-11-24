@@ -18,6 +18,5 @@ export const messagesInChannelTable = sqliteTable("messages_in_channel", {
 
     lastBotMessage: int(),
 
-    lastBotReminderMessage: text(),
-    lastBotReminderLeaderboardMessage: text(),
+    lastBotReminderMessage: text()
 })
