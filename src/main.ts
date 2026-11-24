@@ -32,7 +32,6 @@ app.command(`/${process.env.BOT_NAME}-register`, async ({ command, ack, respond 
         return
     }
 
-    const table = await buildTable(0)
     const message = await app.client.chat.postMessage({
         channel: command.channel_id,
         text: "Remember to thank the person that helped you to give them a point!",
@@ -302,7 +301,6 @@ async function loop() {
     const aDayInSeconds = 60 * 60 * 24
     while (true) {
         const allChannels = await db.select().from(schema.messagesInChannelTable)
-        const table = await buildTable(0)
         allChannels.forEach(async channel => {
             const currentTime = Date.now()
             const aDayPassed = ((currentTime - (channel.lastBotMessage ?? 0)) / 1000) >= aDayInSeconds
