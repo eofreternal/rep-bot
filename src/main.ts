@@ -34,7 +34,7 @@ app.command(`/${process.env.BOT_NAME}-register`, async ({ command, ack, respond 
 
     const message = await app.client.chat.postMessage({
         channel: command.channel_id,
-        text: `Remember to thank the person that helped you to give them a point! Say \`thanks @[their username]\`. To see the leaderboard, run \`${process.env.BOT_NAME}-lb\` in #bot-spam.`
+        text: `Remember to thank the person that helped you to give them a point! Say \`thanks @[their username]\`. To see the leaderboard, run \`${process.env.BOT_NAME}-lb\` in <#C0P5NE354>`
     })
 
     await db.insert(schema.messagesInChannelTable).values({
@@ -309,7 +309,7 @@ async function loop() {
 
                 const message = await app.client.chat.postMessage({
                     channel: channel.id,
-                    text: `Remember to thank the person that helped you to give them a point! Say \`thanks @[their username]\`. To see the leaderboard, run \`${process.env.BOT_NAME}-lb\` in #bot-spam.`
+                    text: `Remember to thank the person that helped you to give them a point! Say \`thanks @[their username]\`. To see the leaderboard, run \`${process.env.BOT_NAME}-lb\` in <#C0P5NE354>`
                 })
 
                 await db.update(schema.messagesInChannelTable).set({
